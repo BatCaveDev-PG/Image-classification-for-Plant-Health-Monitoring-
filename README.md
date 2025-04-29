@@ -1,4 +1,7 @@
 ﻿# ML application on ESP32-S3-EYE (Image classification for Plant Health Monitoring) 
+
+Developed and deployed a CNN-based image classification model on the ESP32-S3-EYE platform for real-time plant health monitoring. Model optimized using TensorFlow Lite for microcontrollers.
+
 Hardware Setup
 
 ![Setup Block Diagram](images/setup_Block%20Diagram.jpg)
