@@ -1,2 +1,4 @@
 ﻿# ML application on ESP32-S3-EYE (Image classification for Plant Health Monitoring) 
-Task 5 Machine Leaning task on Edge Computing devices
+Hardware Setup
+
+![Setup Block Diagram](\images\setup_Block_Diagram.jpg)
