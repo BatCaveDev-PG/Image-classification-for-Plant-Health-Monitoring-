@@ -16,9 +16,10 @@ limitations under the License.
 #include "model_settings.h"
 
 const char* kCategoryLabels[kCategoryCount] = {
-    // TODO 1: Update the code to handle the 3 classes: cup, laptop, unknown -----
-    "cup",
-    "laptop",
+    // Handle the 4 classes: fresh, dried, spoiled, unknown -----
+    "fresh",
+    "dried",
+    "spoiled",
     "unknown"
-    // END TODO 1 ----------------------------------------------------------------
+    // END ----------------------------------------------------------------
 };

@@ -18,6 +18,7 @@ limitations under the License.
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+#include <cstring>
 #include "detection_responder.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "esp_main.h"
@@ -98,11 +99,12 @@ static void create_gui(void)
     check_memory_usage();
 }
 
-void RespondToDetection(float cup_score, float laptop_score, float unknown_score) {
-    int cup_score_int = (cup_score) * 100 + 0.5;
-    int laptop_score_int = (laptop_score) * 100 + 0.5;
-    int unknown_score_int = (unknown_score) * 100 + 0.5;
-
+// Set detection_ratio for Fresh, dried and spoiled category
+void RespondToDetection(float fresh_score, float dried_score, float spoiled_score, float unknown_score) {
+    int fresh_score_int = (fresh_score) * 100 + 0.5;
+    int dried_score_int = (dried_score) * 100 + 0.5;
+    int spoiled_score_int = (spoiled_score) * 100 + 0.5;
+    int unknown_score_int = (spoiled_score) * 100 + 0.5;
 
 #if DISPLAY_SUPPORT
     if (!camera_canvas) {
@@ -120,24 +122,26 @@ void RespondToDetection(float cup_score, float laptop_score, float unknown_score
     }
 
     bsp_display_lock(0);
-    
-    // TODO: Determine the  Change the display to show different text and colors based on the detection result.
-// Determine the highest score and corresponding label and color
-    const char *detected_object = "unknown";
-    lv_color_t status_color = lv_palette_main(LV_PALETTE_YELLOW);
 
-    if (cup_score_int > laptop_score_int && cup_score_int > unknown_score_int) {
-        detected_object = "cup";
+    // Determine the highest score and corresponding label and color
+    const char *detected_object = "unknown";  // 
+    lv_color_t status_color = lv_palette_main(LV_PALETTE_GREEN);
+
+    // Reuse the same structure for determining the highest score
+    if (fresh_score_int > dried_score_int && fresh_score_int > spoiled_score_int) {
+        detected_object = "Fresh";
         status_color = lv_palette_main(LV_PALETTE_RED);
-    } else if (laptop_score_int > cup_score_int && laptop_score_int > unknown_score_int) {
-        detected_object = "laptop";
+    } else if (dried_score_int > fresh_score_int && dried_score_int > spoiled_score_int) {
+        detected_object = "Dried";
         status_color = lv_palette_main(LV_PALETTE_BLUE);
+    } else if (spoiled_score_int > fresh_score_int && spoiled_score_int > dried_score_int) {
+        detected_object = "Spoiled";
+        status_color = lv_palette_main(LV_PALETTE_YELLOW);
     }
+
     // Update the status indicator and label based on the detected object
     lv_led_set_color(status_indicator, status_color);
     lv_label_set_text_static(label, detected_object);
-
-    // END TODO 1 --------------------------------------------------------------------------------------------
 
     // Directly update the canvas buffer if it's allocated
     if (canvas_buf != NULL) {
@@ -149,6 +153,7 @@ void RespondToDetection(float cup_score, float laptop_score, float unknown_score
 
     bsp_display_unlock();
 #endif // DISPLAY_SUPPORT
-    MicroPrintf("cup score:%d%%, laptop score:%d%%, unknown score:%d%%", cup_score_int, laptop_score_int, unknown_score_int);
+
+    MicroPrintf("fresh score: %d%%, dried score: %d%%, spoiled score: %d%%, unknown score: %d%%", fresh_score_int, dried_score_int, spoiled_score_int, unknown_score_int);
 }
 #endif // DISPLAY_SUPPORT

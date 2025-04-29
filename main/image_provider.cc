@@ -82,26 +82,23 @@ TfLiteStatus GetImage(int image_width, int image_height, int channels, int8_t* i
 
 #if DISPLAY_SUPPORT
   // In case if display support is enabled, we initialise camera in rgb mode
-  // Hence, we need to convert this data to grayscale to send it to tf model
   // For display we extra-polate the data to 192X192
   for (int i = 0; i < kNumRows; i++) {
     for (int j = 0; j < kNumCols; j++) {
       uint16_t pixel = ((uint16_t *) (fb->buf))[i * kNumCols + j];
 
-      // for inference
+      // Extract RGB components from the RGB565 pixel format for inference
       uint8_t hb = pixel & 0xFF;
       uint8_t lb = pixel >> 8;
       uint8_t r = (lb & 0x1F) << 3;
       uint8_t g = ((hb & 0x07) << 5) | ((lb & 0xE0) >> 3);
       uint8_t b = (hb & 0xF8);
 
-      /**
-       * Gamma corected rgb to greyscale formula: Y = 0.299R + 0.587G + 0.114B
-       * for effiency we use some tricks on this + quantize to [-128, 127]
-       */
-      int8_t grey_pixel = ((305 * r + 600 * g + 119 * b) >> 10) - 128;
+      // Quantize the pixel values to int8 range [-128, 127] and store in image_data
+      image_data[(i * kNumCols + j) * channels] = (r - 128);  // Red channel
+      image_data[(i * kNumCols + j) * channels + 1] = (g - 128);  // Green channel
+      image_data[(i * kNumCols + j) * channels + 2] = (b - 128);  // Blue channel
 
-      image_data[i * kNumCols + j] = grey_pixel;
 
       // to display
       display_buf[2 * i * kNumCols * 2 + 2 * j] = pixel;
@@ -112,15 +109,13 @@ TfLiteStatus GetImage(int image_width, int image_height, int channels, int8_t* i
   }
 #else // DISPLAY_SUPPORT
   MicroPrintf("Image Captured\n");
-  // We have initialised camera to grayscale
-  // Just quantize to int8_t
-  for (int i = 0; i < image_width * image_height; i++) {
-    image_data[i] = ((uint8_t *) fb->buf)[i] ^ 0x80;
+  // If the camera is initialized to RGB, we resize and normalize the image for inference
+  for (int i = 0; i < kNumCols * kNumRows * channels; i++) {
+    image_data[i] = ((uint8_t *) fb->buf)[i] - 128;  // Quantize to int8 range
   }
 #endif // DISPLAY_SUPPORT
 
   esp_camera_fb_return(fb);
-  /* here the esp camera can give you grayscale image directly */
   return kTfLiteOk;
 #else
   return kTfLiteError;

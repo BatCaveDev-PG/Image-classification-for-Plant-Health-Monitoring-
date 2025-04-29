@@ -23,16 +23,17 @@ limitations under the License.
 // if you change your model you'll need to update these constants.
 constexpr int kNumCols = 96;
 constexpr int kNumRows = 96;
-constexpr int kNumChannels = 1;
+constexpr int kNumChannels = 3;
 
 constexpr int kMaxImageSize = kNumCols * kNumRows * kNumChannels;
 
-// TODO: Edit the category and make the corresponding index
-constexpr int kCategoryCount = 3;
-constexpr int kCupIndex = 0;
-constexpr int kLaptopIndex = 1;
-constexpr int kUnknownIndex = 2;
+// Label the Category and it's the corresponding index
+constexpr int kCategoryCount = 4;
+constexpr int kFreshIndex = 0;
+constexpr int kDriedIndex = 1;
+constexpr int kSpoiledIndex = 2;
+constexpr int kUnknownIndex = 3;
 extern const char* kCategoryLabels[kCategoryCount];
-// END TODO ----------------------------------------------------------------
+// END ----------------------------------------------------------------
 
 #endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_PERSON_DETECTION_MODEL_SETTINGS_H_

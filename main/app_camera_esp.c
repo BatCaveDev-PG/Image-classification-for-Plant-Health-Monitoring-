@@ -71,8 +71,7 @@ int app_camera_init() {
 
   // Pixel format and frame size are specific configurations options for this application.
   // Frame size must be 96x96 pixels to match the trained model.
-  // Pixel format defaults to grayscale to match the trained model.
-  // With display support enabled, the pixel format is RGB565 to match the display. The frame is converted to grayscale before it is passed to the trained model.
+  // With display support enabled, the pixel format is RGB565 to match the display.
   config.pixel_format = CAMERA_PIXEL_FORMAT;
   config.frame_size = CAMERA_FRAME_SIZE;
 

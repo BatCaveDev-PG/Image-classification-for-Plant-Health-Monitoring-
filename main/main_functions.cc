@@ -18,7 +18,7 @@ limitations under the License.
 #include "detection_responder.h"
 #include "image_provider.h"
 #include "model_settings.h"
-#include "object_detection_model.h"
+#include "freshness_detection_model.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
@@ -52,7 +52,7 @@ namespace
   constexpr int scratchBufSize = 0;
 #endif
   // An area of memory to use for input, output, and intermediate arrays.
-  constexpr int kTensorArenaSize = 75 * 1024 + scratchBufSize;
+  constexpr int kTensorArenaSize = 100 * 1024 + scratchBufSize;
   static uint8_t *tensor_arena; //[kTensorArenaSize]; // Maybe we should move this to external
 } // namespace
 
@@ -153,23 +153,25 @@ void loop()
 
   TfLiteTensor *output = interpreter->output(0);
 
-  // Process the inference results.
-  // TODO 1: Update the code to handle the 3 classes: cup, laptop, unknown -----
-  int8_t unknown_score = output->data.uint8[kUnknownIndex];
-  int8_t cup_score = output ->data.uint8[kCupIndex];
-  int8_t laptop_score = output ->data.uint8[kLaptopIndex];
+  // Process the inference results to handle the 3 classes: fresh, dried, spoiled -----
+  int8_t fresh_score = output->data.uint8[kFreshIndex];
+  int8_t dried_score = output ->data.uint8[kDriedIndex];
+  int8_t spoiled_score = output ->data.uint8[kSpoiledIndex];
+  int8_t unknown_score = output ->data.uint8[kUnknownIndex];
 
+  float fresh_score_f =
+      (fresh_score - output->params.zero_point) * output->params.scale;
+  float dried_score_f =
+      (dried_score - output->params.zero_point) * output->params.scale;
+  float spoiled_score_f =
+      (spoiled_score - output->params.zero_point) * output->params.scale;
   float unknown_score_f =
-      (unknown_score - output->params.zero_point) * output->params.scale;
-  float cup_score_f =
-      (cup_score - output->params.zero_point) * output->params.scale;
-    float laptop_score_f =
-      (laptop_score - output->params.zero_point) * output->params.scale;  
+      (unknown_score - output->params.zero_point) * output->params.scale;  
 
-  // END TODO 1 ----------------------------------------------------------------
+  // END Process ----------------------------------------------------------------
 
   // Respond to detection
-  RespondToDetection(cup_score_f, laptop_score_f, unknown_score_f);
+  RespondToDetection(fresh_score_f, dried_score_f, spoiled_score_f, unknown_score_f);
   vTaskDelay(1); // to avoid watchdog trigger
 }
 #endif
@@ -188,45 +190,26 @@ void run_inference(void *ptr) {
     MicroPrintf("Invoke failed.");
   }
 
-// #if defined(COLLECT_CPU_STATS)
-//   long long total_time = (esp_timer_get_time() - start_time);
-//   printf("Total time = %lld\n", total_time / 1000);
-//   //printf("Softmax time = %lld\n", softmax_total_time / 1000);
-//   printf("FC time = %lld\n", fc_total_time / 1000);
-//   printf("DC time = %lld\n", dc_total_time / 1000);
-//   printf("conv time = %lld\n", conv_total_time / 1000);
-//   printf("Pooling time = %lld\n", pooling_total_time / 1000);
-//   printf("add time = %lld\n", add_total_time / 1000);
-//   printf("mul time = %lld\n", mul_total_time / 1000);
-
-//   /* Reset times */
-//   total_time = 0;
-//   //softmax_total_time = 0;
-//   dc_total_time = 0;
-//   conv_total_time = 0;
-//   fc_total_time = 0;
-//   pooling_total_time = 0;
-//   add_total_time = 0;
-//   mul_total_time = 0;
-// #endif
-
   TfLiteTensor* output = interpreter->output(0);
 
   // Process the inference results.
-    int8_t unknown_score = output->data.uint8[kUnknownIndex];
-  int8_t cup_score = output ->data.uint8[kCupIndex];
-  int8_t laptop_score = output ->data.uint8[kLaptopIndex];
+  int8_t fresh_score = output->data.uint8[kFreshIndex];
+  int8_t dried_score = output ->data.uint8[kDriedIndex];
+  int8_t spoiled_score = output ->data.uint8[kSpoiledIndex];
+  int8_t unknown_score = output ->data.uint8[kUnknownIndex];
 
+  float fresh_score_f =
+      (fresh_score - output->params.zero_point) * output->params.scale;
+  float dried_score_f =
+      (dried_score - output->params.zero_point) * output->params.scale;
+  float spoiled_score_f =
+    (spoiled_score - output->params.zero_point) * output->params.scale;
   float unknown_score_f =
-      (unknown_score - output->params.zero_point) * output->params.scale;
-  float cup_score_f =
-      (cup_score - output->params.zero_point) * output->params.scale;
-    float laptop_score_f =
-      (laptop_score - output->params.zero_point) * output->params.scale;  
+    (unknown_score - output->params.zero_point) * output->params.scale;   
 
-  // END TODO 1 ----------------------------------------------------------------
+  // END PROCESS----------------------------------------------------------------
 
   // Respond to detection
-  RespondToDetection(cup_score_f, laptop_score_f, unknown_score_f);
+  RespondToDetection(fresh_score_f, dried_score_f, spoiled_score_f, unknown_score_f);
 
 }

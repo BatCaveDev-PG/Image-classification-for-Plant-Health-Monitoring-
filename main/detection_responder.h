@@ -27,6 +27,6 @@ limitations under the License.
 // does not contain a OBJECT. Typically if OBJECT_score > no OBJECT score, the
 // image is considered to contain a OBJECT.  This threshold may be adjusted for
 // particular applications.
-void RespondToDetection(float cup_score, float laptop_score, float unknown_score);
+void RespondToDetection(float fresh_score, float dried_score, float spoiled_score, float unknown_score);
 
 #endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_OBJECT_DETECTION_DETECTION_RESPONDER_H_
