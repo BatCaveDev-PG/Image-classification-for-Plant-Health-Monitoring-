@@ -25,4 +25,4 @@ if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/sdkconfig)
     add_bsp("${SDKCONFIG_RULE}" "TFLITE_USE_BSP_KALUGA" "esp32s2")
 endif()
 
-project(object_detection)
+project(freshness_detection)
